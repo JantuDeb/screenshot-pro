@@ -64,10 +64,18 @@ async function captureTab(tab) {
     // Show notification to user
     chrome.tabs.sendMessage(tab.id, {
       action: "showNotification",
-      message: "Full tab screenshot captured! Click the extension icon to view it."
+      message: "Full tab screenshot captured! Check the sidebar to view it.",
     });
 
-    // Note: Side panel will be opened by user action or content script
+    // Check if auto-open sidebar is enabled
+    try {
+      const { settings } = await chrome.storage.local.get("settings");
+      if (settings && settings.autoOpenSidebar) {
+        await chrome.sidePanel.open({ tabId: tab.id });
+      }
+    } catch (error) {
+      console.log("Could not auto-open sidebar:", error.message);
+    }
   } catch (error) {
     console.error("Error capturing tab:", error);
   }
@@ -99,7 +107,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } else if (request.action === "saveScreenshot") {
         await saveScreenshot(request.data);
       } else if (request.action === "captureTab") {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabs = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
         if (tabs[0]) {
           await captureTab(tabs[0]);
         }
@@ -110,7 +121,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: false, error: error.message });
     }
   })();
-  
+
   // Return true to indicate we will send a response asynchronously
   return true;
 });

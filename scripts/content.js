@@ -69,13 +69,10 @@ function createSelectionOverlay() {
   selectionBox.id = "selection-box";
   selectionBox.style.cssText = `
     position: absolute;
-    border: 3px solid #3b82f6;
-    background: rgba(59, 130, 246, 0.15);
+    border: 2px dashed #000;
+    background: transparent;
     display: none;
     box-sizing: border-box;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(0, 0, 0, 0.3);
-    outline: 2px dashed rgba(255, 255, 255, 0.7);
-    outline-offset: 2px;
   `;
 
   // Create selection info
@@ -142,13 +139,10 @@ function injectSelectionStyles() {
     
     #selection-box {
       position: absolute !important;
-      border: 3px solid #3b82f6 !important;
-      background: rgba(59, 130, 246, 0.15) !important;
+      border: 2px dashed #000 !important;
+      background: transparent !important;
       display: none !important;
       box-sizing: border-box !important;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(0, 0, 0, 0.3) !important;
-      outline: 2px dashed rgba(255, 255, 255, 0.7) !important;
-      outline-offset: 2px !important;
     }
     
     #selection-info {
@@ -253,15 +247,12 @@ function onMouseUp(e) {
       devicePixelRatio: window.devicePixelRatio,
     });
 
-    // Send capture request to background script with viewport coordinates
-    chrome.runtime.sendMessage({
-      action: "captureArea",
-      area: {
-        x: viewportX,
-        y: viewportY,
-        width: width,
-        height: height,
-      },
+    // Check if auto-save is enabled before capturing
+    checkAutoSaveAndCapture({
+      x: viewportX,
+      y: viewportY,
+      width: width,
+      height: height,
     });
   }
 
@@ -274,6 +265,101 @@ function onKeyDown(e) {
     e.stopPropagation();
     endSelection();
   }
+}
+
+// Check auto-save settings and capture
+async function checkAutoSaveAndCapture(area) {
+  try {
+    // Get settings from storage
+    const { settings } = await chrome.storage.local.get("settings");
+    const autoSaveEnabled = settings && settings.autoSaveSelection;
+
+    if (autoSaveEnabled) {
+      // Auto-save: capture immediately
+      chrome.runtime.sendMessage({
+        action: "captureArea",
+        area: area,
+      });
+    } else {
+      // Manual save: show confirmation dialog
+      showCaptureConfirmation(area);
+    }
+  } catch (error) {
+    console.error("Error checking auto-save settings:", error);
+    // Fallback to manual confirmation
+    showCaptureConfirmation(area);
+  }
+}
+
+// Show capture confirmation dialog
+function showCaptureConfirmation(area) {
+  const confirmationDialog = document.createElement("div");
+  confirmationDialog.id = "capture-confirmation";
+  confirmationDialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    z-index: 2147483648;
+    min-width: 300px;
+    text-align: center;
+  `;
+
+  confirmationDialog.innerHTML = `
+    <h3 style="margin: 0 0 16px 0; color: #374151; font-size: 16px;">Capture Screenshot?</h3>
+    <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px;">
+      Area: ${area.width} x ${area.height} pixels
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button id="confirm-capture" style="
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      ">Capture</button>
+      <button id="cancel-capture" style="
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      ">Cancel</button>
+    </div>
+  `;
+
+  document.body.appendChild(confirmationDialog);
+
+  // Handle confirmation
+  document.getElementById("confirm-capture").addEventListener("click", () => {
+    chrome.runtime.sendMessage({
+      action: "captureArea",
+      area: area,
+    });
+    confirmationDialog.remove();
+  });
+
+  // Handle cancellation
+  document.getElementById("cancel-capture").addEventListener("click", () => {
+    confirmationDialog.remove();
+  });
+
+  // Auto-remove after 10 seconds
+  setTimeout(() => {
+    if (confirmationDialog.parentNode) {
+      confirmationDialog.remove();
+    }
+  }, 10000);
 }
 
 // End selection

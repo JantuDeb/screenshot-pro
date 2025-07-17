@@ -11,9 +11,7 @@
     "tabs",
     "scripting"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "public/popup.html",
     "default_title": "Screenshot Capture"
@@ -31,6 +29,7 @@
   "side_panel": {
     "default_path": "public/sidebar.html"
   },
+  "options_page": "public/settings.html",
   "commands": {
     "capture-area": {
       "suggested_key": {

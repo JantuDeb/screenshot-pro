@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../styles/dist/output.css" rel="stylesheet">
+  <title>Screenshot Capture Pro - Settings</title>
+</head>
+<body class="bg-background text-foreground p-8 max-w-4xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-foreground mb-2">Screenshot Capture Pro Settings</h1>
+    <p class="text-muted-foreground">Configure your screenshot capture preferences</p>
+  </div>
+
+  <!-- General Settings -->
+  <div class="bg-card rounded-lg p-6 mb-6 shadow-sm border border-border">
+    <h2 class="text-xl font-semibold text-foreground mb-4">General Settings</h2>
+    
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">Auto-save selection area</label>
+          <p class="text-xs text-muted-foreground">Automatically save screenshots when area is selected</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="autoSaveSelection" class="sr-only peer">
+          <div class="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-highlight"></div>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">Enable image annotations</label>
+          <p class="text-xs text-muted-foreground">Allow adding text and drawings to screenshots</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="enableAnnotations" class="sr-only peer" checked>
+          <div class="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-highlight"></div>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">Auto-open sidebar on full capture</label>
+          <p class="text-xs text-muted-foreground">Open sidebar automatically when capturing full tab</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="autoOpenSidebar" class="sr-only peer" checked>
+          <div class="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-highlight"></div>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">Save selected text</label>
+          <p class="text-xs text-muted-foreground">Save text selections as separate items for later copying</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="saveSelectedText" class="sr-only peer" checked>
+          <div class="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-highlight"></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage Settings -->
+  <div class="bg-card rounded-lg p-6 mb-6 shadow-sm border border-border">
+    <h2 class="text-xl font-semibold text-foreground mb-4">Storage Settings</h2>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="text-sm font-medium text-foreground block mb-2">Maximum screenshots to keep</label>
+        <select id="maxScreenshots" class="w-32 p-2 border border-input rounded-md bg-background text-foreground text-sm">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+        <p class="text-xs text-muted-foreground mt-1">Older screenshots will be automatically deleted</p>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">Filter screenshots by domain</label>
+          <p class="text-xs text-muted-foreground">Show only screenshots from current domain in sidebar</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="filterByDomain" class="sr-only peer">
+          <div class="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-highlight/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-highlight"></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotation Settings -->
+  <div class="bg-card rounded-lg p-6 mb-6 shadow-sm border border-border">
+    <h2 class="text-xl font-semibold text-foreground mb-4">Annotation Settings</h2>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="text-sm font-medium text-foreground block mb-2">Default annotation color</label>
+        <input type="color" id="annotationColor" value="#ef4444" class="w-16 h-8 rounded border border-input">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-foreground block mb-2">Default text size</label>
+        <select id="annotationTextSize" class="w-32 p-2 border border-input rounded-md bg-background text-foreground text-sm">
+          <option value="12">12px</option>
+          <option value="14">14px</option>
+          <option value="16" selected>16px</option>
+          <option value="18">18px</option>
+          <option value="24">24px</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex gap-4">
+    <button id="saveSettings" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+      Save Settings
+    </button>
+    <button id="resetSettings" class="bg-secondary text-secondary-foreground px-6 py-2 rounded-lg hover:bg-secondary/80 transition-colors">
+      Reset to Defaults
+    </button>
+  </div>
+
+  <!-- Status Message -->
+  <div id="statusMessage" class="mt-4"></div>
+
+  <script src="../scripts/settings.js"></script>
+</body>
+</html>

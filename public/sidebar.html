@@ -23,6 +23,20 @@
   <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
     <h3 class="text-sm font-medium text-foreground mb-2">Text Input</h3>
     <textarea id="textInput" placeholder="Add notes or selected text here..." class="w-full min-h-[80px] p-3 border border-input rounded-md bg-background text-foreground text-sm resize-y"></textarea>
+    <div class="flex gap-2 mt-2">
+      <button id="saveTextNote" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors">
+        Save Text Note
+      </button>
+      <button id="clearTextInput" class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Saved Text Notes Section -->
+  <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
+    <h3 class="text-sm font-medium text-foreground mb-3">Saved Text Notes</h3>
+    <div id="savedTextsList"></div>
   </div>
   
   <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
@@ -34,6 +48,36 @@
     <div id="statusMessage" class="mt-2"></div>
   </div>
   
+  <!-- Annotation Tools (hidden by default) -->
+  <div id="annotationTools" class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border hidden">
+    <h3 class="text-sm font-medium text-foreground mb-3">Annotation Tools</h3>
+    <div class="flex gap-2 mb-3">
+      <button id="annotateText" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors">
+        Add Text
+      </button>
+      <button id="annotateDraw" class="bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700 transition-colors">
+        Draw
+      </button>
+      <button id="annotateHighlight" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition-colors">
+        Highlight
+      </button>
+      <button id="clearAnnotations" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors">
+        Clear
+      </button>
+    </div>
+    <div class="flex gap-2 items-center">
+      <label class="text-xs text-muted-foreground">Color:</label>
+      <input type="color" id="annotationColorPicker" value="#ef4444" class="w-6 h-6 rounded border border-input">
+      <label class="text-xs text-muted-foreground ml-2">Size:</label>
+      <select id="annotationSizePicker" class="text-xs border border-input rounded px-1 py-0.5 bg-background">
+        <option value="12">12px</option>
+        <option value="16" selected>16px</option>
+        <option value="20">20px</option>
+        <option value="24">24px</option>
+      </select>
+    </div>
+  </div>
+
   <div class="bg-card rounded-lg p-4 shadow-sm border border-border">
     <h3 class="text-sm font-medium text-foreground mb-4">Recent Screenshots</h3>
     <div id="screenshotsList"></div>
