@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../styles/dist/output.css" rel="stylesheet">
+</head>
+<body class="w-[300px] p-5 bg-background text-foreground">
+  <div class="text-center mb-5">
+    <h1 class="text-lg font-semibold text-foreground">Screenshot Capture</h1>
+  </div>
+  
+  <div class="flex flex-col gap-3">
+    <button id="captureArea" class="bg-primary text-primary-foreground px-4 py-3 rounded-lg cursor-pointer text-sm transition-colors hover:bg-primary/90">
+      Select Area to Capture
+    </button>
+    <button id="captureTab" class="bg-primary text-primary-foreground px-4 py-3 rounded-lg cursor-pointer text-sm transition-colors hover:bg-primary/90">
+      Capture Entire Tab
+    </button>
+    <button id="openSidebar" class="bg-secondary text-secondary-foreground px-4 py-3 rounded-lg cursor-pointer text-sm transition-colors hover:bg-secondary/90">
+      Open Screenshot Manager
+    </button>
+  </div>
+  
+  <div class="mt-5 pt-4 border-t border-border">
+    <h3 class="text-sm font-medium text-foreground mb-2">Keyboard Shortcuts:</h3>
+    <div class="space-y-1">
+      <div class="flex justify-between items-center text-xs">
+        <span class="text-muted-foreground">Capture Area:</span>
+        <span class="font-mono bg-muted px-2 py-1 rounded-sm text-xs">Ctrl+Shift+S</span>
+      </div>
+      <div class="flex justify-between items-center text-xs">
+        <span class="text-muted-foreground">Capture Tab:</span>
+        <span class="font-mono bg-muted px-2 py-1 rounded-sm text-xs">Ctrl+Shift+T</span>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../scripts/popup.js"></script>
+</body>
+</html>

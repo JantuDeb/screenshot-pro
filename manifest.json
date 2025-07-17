@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Screenshot Capture Pro",
+  "version": "1.0",
+  "description": "Capture screenshots with area selection, text input, and API submission",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "sidePanel",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "public/popup.html",
+    "default_title": "Screenshot Capture"
+  },
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts/content.js"],
+      "css": ["styles/dist/output.css"]
+    }
+  ],
+  "side_panel": {
+    "default_path": "public/sidebar.html"
+  },
+  "commands": {
+    "capture-area": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S"
+      },
+      "description": "Capture selected area"
+    },
+    "capture-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T"
+      },
+      "description": "Capture entire tab"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["public/sidebar.html", "styles/dist/output.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

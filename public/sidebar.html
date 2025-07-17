@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../styles/dist/output.css" rel="stylesheet">
+</head>
+<body class="bg-sidebar text-foreground p-5">
+  <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
+    <h1 class="text-lg font-semibold text-foreground mb-2">Screenshot Manager</h1>
+    <div class="text-xs text-muted-foreground break-all" id="currentUrl">Loading...</div>
+  </div>
+  
+  <div class="flex gap-3 mb-5">
+    <button id="captureArea" class="bg-primary text-primary-foreground px-3 py-2 rounded-md text-sm flex-1 hover:bg-primary/90 transition-colors">
+      Select Area
+    </button>
+    <button id="captureTab" class="bg-primary text-primary-foreground px-3 py-2 rounded-md text-sm flex-1 hover:bg-primary/90 transition-colors">
+      Capture Tab
+    </button>
+  </div>
+  
+  <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
+    <h3 class="text-sm font-medium text-foreground mb-2">Text Input</h3>
+    <textarea id="textInput" placeholder="Add notes or selected text here..." class="w-full min-h-[80px] p-3 border border-input rounded-md bg-background text-foreground text-sm resize-y"></textarea>
+  </div>
+  
+  <div class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border">
+    <h3 class="text-sm font-medium text-foreground mb-2">API Settings</h3>
+    <input type="text" id="apiEndpoint" placeholder="API Endpoint URL" class="w-full p-2 border border-input rounded-md bg-background text-foreground text-sm mb-3">
+    <button id="submitToApi" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors w-full">
+      Submit to API
+    </button>
+    <div id="statusMessage" class="mt-2"></div>
+  </div>
+  
+  <div class="bg-card rounded-lg p-4 shadow-sm border border-border">
+    <h3 class="text-sm font-medium text-foreground mb-4">Recent Screenshots</h3>
+    <div id="screenshotsList"></div>
+  </div>
+  
+  <script src="../scripts/sidebar.js"></script>
+</body>
+</html>
