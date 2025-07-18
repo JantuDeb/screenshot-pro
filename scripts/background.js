@@ -114,6 +114,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (tabs[0]) {
           await captureTab(tabs[0]);
         }
+      } else if (request.action === "openAnnotationPopup") {
+        await openAnnotationPopup(request.screenshotId);
+      } else if (request.action === "saveAnnotatedScreenshot") {
+        await saveAnnotatedScreenshot(
+          request.screenshotId,
+          request.annotatedDataUrl
+        );
       }
       sendResponse({ success: true });
     } catch (error) {
@@ -142,5 +149,65 @@ async function captureArea(tab, area) {
     });
   } catch (error) {
     console.error("Error capturing area:", error);
+  }
+}
+
+// Open annotation popup window
+async function openAnnotationPopup(screenshotId) {
+  try {
+    const popupWidth = 1200;
+    const popupHeight = 800;
+
+    // Get current window to center the popup
+    const currentWindow = await chrome.windows.getCurrent();
+    const left = Math.round(
+      (currentWindow.width - popupWidth) / 2 + (currentWindow.left || 0)
+    );
+    const top = Math.round(
+      (currentWindow.height - popupHeight) / 2 + (currentWindow.top || 0)
+    );
+
+    // Create popup window
+    const popup = await chrome.windows.create({
+      url: chrome.runtime.getURL(`public/annotation.html?id=${screenshotId}`),
+      type: "popup",
+      width: popupWidth,
+      height: popupHeight,
+      left: left,
+      top: top,
+      focused: true,
+    });
+
+    console.log("Annotation popup opened:", popup.id);
+  } catch (error) {
+    console.error("Error opening annotation popup:", error);
+  }
+}
+
+// Save annotated screenshot
+async function saveAnnotatedScreenshot(screenshotId, annotatedDataUrl) {
+  try {
+    const { screenshots = [] } = await chrome.storage.local.get("screenshots");
+
+    // Find and update the screenshot
+    const screenshotIndex = screenshots.findIndex(
+      (s) => s.id.toString() === screenshotId.toString()
+    );
+
+    if (screenshotIndex !== -1) {
+      screenshots[screenshotIndex] = {
+        ...screenshots[screenshotIndex],
+        dataUrl: annotatedDataUrl,
+        timestamp: new Date().toISOString(), // Update timestamp to show it was modified
+      };
+
+      await chrome.storage.local.set({ screenshots });
+      console.log("Annotated screenshot saved successfully");
+    } else {
+      throw new Error("Screenshot not found");
+    }
+  } catch (error) {
+    console.error("Error saving annotated screenshot:", error);
+    throw error;
   }
 }

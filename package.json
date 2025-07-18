@@ -9,5 +9,9 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.4.0"
+  },
+  "dependencies": {
+    "@markerjs/markerjs3": "^3.7.1",
+    "roughjs": "^4.6.6"
   }
 }

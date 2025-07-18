@@ -1,10 +1,13 @@
 // Sidebar script for Chrome extension
 
 let currentTab = null;
-let screenshots = [];
+let allScreenshots = []; // Store all screenshots
+let screenshots = []; // Store filtered screenshots
 let annotationMode = null;
 let selectedScreenshot = null;
 let savedTexts = [];
+let allSavedTexts = []; // Store all saved texts
+let currentFilter = "all"; // Current filter mode
 
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
@@ -16,6 +19,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load stored data
 
   await loadStoredData();
+
+  // Load filter preference
+  await loadFilterPreference();
 
   // Load screenshots
   await loadScreenshots();
@@ -46,46 +52,21 @@ async function loadStoredData() {
 }
 
 async function loadScreenshots() {
-  const data = await chrome.storage.local.get(["screenshots", "settings"]);
-  let allScreenshots = data.screenshots || [];
+  const data = await chrome.storage.local.get(["screenshots"]);
+  allScreenshots = data.screenshots || [];
 
-  // Apply domain filtering if enabled
-  if (data.settings && data.settings.filterByDomain && currentTab) {
-    const currentDomain = new URL(currentTab.url).hostname;
-    screenshots = allScreenshots.filter((screenshot) => {
-      try {
-        const screenshotDomain = new URL(screenshot.url).hostname;
-        return screenshotDomain === currentDomain;
-      } catch (error) {
-        // If URL parsing fails, include the screenshot
-        return true;
-      }
-    });
-  } else {
-    screenshots = allScreenshots;
-  }
+  // Apply current filter
+  applyScreenshotFilter();
 
   renderScreenshots();
 }
 
 async function loadSavedTexts() {
-  const data = await chrome.storage.local.get(["savedTexts", "settings"]);
-  let allTexts = data.savedTexts || [];
+  const data = await chrome.storage.local.get(["savedTexts"]);
+  allSavedTexts = data.savedTexts || [];
 
-  // Apply domain filtering if enabled
-  if (data.settings && data.settings.filterByDomain && currentTab) {
-    const currentDomain = new URL(currentTab.url).hostname;
-    savedTexts = allTexts.filter((text) => {
-      try {
-        const textDomain = new URL(text.url).hostname;
-        return textDomain === currentDomain;
-      } catch (error) {
-        return true;
-      }
-    });
-  } else {
-    savedTexts = allTexts;
-  }
+  // Apply current filter
+  applySavedTextsFilter();
 
   renderSavedTexts();
 }
@@ -94,14 +75,14 @@ function renderScreenshots() {
   const container = document.getElementById("screenshotsList");
 
   if (screenshots.length === 0) {
-    // Check if filtering is enabled to show appropriate message
-    chrome.storage.local.get("settings").then((data) => {
-      const isFiltering = data.settings && data.settings.filterByDomain;
-      const message = isFiltering
-        ? "No screenshots for this domain yet. Capture your first screenshot or disable domain filtering in settings!"
-        : "No screenshots yet. Capture your first screenshot!";
-      container.innerHTML = `<div class="text-center py-10 text-muted-foreground">${message}</div>`;
-    });
+    let message;
+    if (currentFilter === "domain") {
+      message =
+        "No screenshots for this domain yet. Capture your first screenshot or change filter to 'All'!";
+    } else {
+      message = "No screenshots yet. Capture your first screenshot!";
+    }
+    container.innerHTML = `<div class="text-center py-10 text-muted-foreground">${message}</div>`;
     return;
   }
 
@@ -145,13 +126,14 @@ function renderSavedTexts() {
   const container = document.getElementById("savedTextsList");
 
   if (savedTexts.length === 0) {
-    chrome.storage.local.get("settings").then((data) => {
-      const isFiltering = data.settings && data.settings.filterByDomain;
-      const message = isFiltering
-        ? "No saved texts for this domain yet. Save your first text note!"
-        : "No saved texts yet. Save your first text note!";
-      container.innerHTML = `<div class="text-center py-6 text-muted-foreground text-xs">${message}</div>`;
-    });
+    let message;
+    if (currentFilter === "domain") {
+      message =
+        "No saved texts for this domain yet. Save your first text note!";
+    } else {
+      message = "No saved texts yet. Save your first text note!";
+    }
+    container.innerHTML = `<div class="text-center py-6 text-muted-foreground text-xs">${message}</div>`;
     return;
   }
 
@@ -171,7 +153,7 @@ function renderSavedTexts() {
           }" class="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs hover:bg-secondary/80">Copy</button>
           <button data-action="editText" data-id="${
             text.id
-          }" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Edit</button>
+          }" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-highlight">Edit</button>
           <button data-action="deleteText" data-id="${
             text.id
           }" class="bg-destructive text-destructive-foreground px-2 py-1 rounded text-xs hover:bg-destructive/80">Delete</button>
@@ -235,6 +217,31 @@ function setupEventListeners() {
     .addEventListener("click", saveTextNote);
   document.getElementById("clearTextInput").addEventListener("click", () => {
     document.getElementById("textInput").value = "";
+  });
+
+  // Filter dropdown event listeners
+  document.getElementById("filterDropdown").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const menu = e.currentTarget.parentElement.querySelector(".dropdown-menu");
+    menu.classList.toggle("hidden");
+  });
+
+  // Filter option click handlers
+  document.getElementById("filterAll").addEventListener("click", (e) => {
+    e.preventDefault();
+    handleFilterChange("all");
+    document.querySelector(".dropdown-menu").classList.add("hidden");
+  });
+
+  document.getElementById("filterDomain").addEventListener("click", (e) => {
+    e.preventDefault();
+    handleFilterChange("domain");
+    document.querySelector(".dropdown-menu").classList.add("hidden");
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", () => {
+    document.querySelector(".dropdown-menu").classList.add("hidden");
   });
 
   // Event delegation for screenshot actions
@@ -386,14 +393,16 @@ function openFullscreen(screenshotId) {
   const screenshot = screenshots.find((s) => s.id.toString() === screenshotId);
   if (screenshot) {
     const newWindow = window.open("", "_blank");
-    newWindow.document.write(`
-      <html>
-        <head><title>Screenshot - ${screenshot.title}</title></head>
-        <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
-          <img src="${screenshot.dataUrl}" style="max-width:100%; max-height:100vh; object-fit:contain;">
-        </body>
-      </html>
-    `);
+    if (newWindow) {
+      newWindow.document.write(`
+        <html>
+          <head><title>Screenshot - ${screenshot.title}</title></head>
+          <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+            <img src="${screenshot.dataUrl}" style="max-width:100%; max-height:100vh; object-fit:contain;">
+          </body>
+        </html>
+      `);
+    }
   }
 }
 
@@ -436,239 +445,29 @@ async function deleteScreenshot(screenshotId) {
   }
 }
 
-// Annotation functionality
+// Legacy annotation functionality - now replaced with modal
 function setupAnnotationListeners() {
-  const annotateText = document.getElementById("annotateText");
-  const annotateDraw = document.getElementById("annotateDraw");
-  const annotateHighlight = document.getElementById("annotateHighlight");
-  const clearAnnotations = document.getElementById("clearAnnotations");
-
-  annotateText.addEventListener("click", () => setAnnotationMode("text"));
-  annotateDraw.addEventListener("click", () => setAnnotationMode("draw"));
-  annotateHighlight.addEventListener("click", () =>
-    setAnnotationMode("highlight")
-  );
-  clearAnnotations.addEventListener("click", clearAllAnnotations);
+  // These listeners are no longer needed as we use the modal
+  console.log("Legacy annotation listeners - functionality moved to modal");
 }
 
-function enableAnnotationMode(screenshotId) {
+async function enableAnnotationMode(screenshotId) {
   selectedScreenshot = screenshots.find(
     (s) => s.id.toString() === screenshotId
   );
   if (!selectedScreenshot) return;
 
-  // Show annotation tools
-  document.getElementById("annotationTools").classList.remove("hidden");
-
-  // Load settings for annotation tools
-  loadAnnotationSettings();
-
-  // Create annotation canvas
-  createAnnotationCanvas();
-
-  showStatus(
-    "Annotation mode enabled. Select a tool and click on the image.",
-    "success"
-  );
-}
-
-async function loadAnnotationSettings() {
   try {
-    const { settings } = await chrome.storage.local.get("settings");
-    if (settings) {
-      document.getElementById("annotationColorPicker").value =
-        settings.annotationColor || "#ef4444";
-      document.getElementById("annotationSizePicker").value =
-        settings.annotationTextSize || 16;
-    }
-  } catch (error) {
-    console.error("Error loading annotation settings:", error);
-  }
-}
-
-function setAnnotationMode(mode) {
-  annotationMode = mode;
-
-  // Update button states
-  document.querySelectorAll("#annotationTools button").forEach((btn) => {
-    btn.classList.remove("ring-2", "ring-white");
-  });
-
-  const activeButton = document.getElementById(
-    `annotate${mode.charAt(0).toUpperCase() + mode.slice(1)}`
-  );
-  if (activeButton) {
-    activeButton.classList.add("ring-2", "ring-white");
-  }
-
-  showStatus(
-    `${
-      mode.charAt(0).toUpperCase() + mode.slice(1)
-    } mode active. Click on image to annotate.`,
-    "success"
-  );
-}
-
-function createAnnotationCanvas() {
-  if (!selectedScreenshot) return;
-
-  // Find the screenshot image element
-  const screenshotImg = document.querySelector(
-    `img[data-id="${selectedScreenshot.id}"]`
-  );
-  if (!screenshotImg) return;
-
-  // Add click listener for annotations
-  screenshotImg.style.cursor = "crosshair";
-  screenshotImg.addEventListener("click", handleAnnotationClick);
-}
-
-function handleAnnotationClick(event) {
-  if (!annotationMode || !selectedScreenshot) return;
-
-  const rect = event.target.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-
-  // Calculate relative position
-  const relativeX = x / rect.width;
-  const relativeY = y / rect.height;
-
-  if (annotationMode === "text") {
-    addTextAnnotation(relativeX, relativeY, event.target);
-  } else if (annotationMode === "highlight") {
-    addHighlightAnnotation(relativeX, relativeY, event.target);
-  }
-  // Draw mode would require more complex canvas implementation
-}
-
-function addTextAnnotation(x, y, imageElement) {
-  const text = prompt("Enter annotation text:");
-  if (!text) return;
-
-  const color = document.getElementById("annotationColorPicker").value;
-  const size = document.getElementById("annotationSizePicker").value;
-
-  // Create annotation element
-  const annotation = document.createElement("div");
-  annotation.className =
-    "absolute bg-white border border-gray-300 rounded px-2 py-1 text-xs shadow-lg z-10";
-  annotation.style.cssText = `
-    position: absolute;
-    left: ${x * 100}%;
-    top: ${y * 100}%;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: ${size}px;
-    color: ${color};
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    transform: translate(-50%, -100%);
-    max-width: 200px;
-    word-wrap: break-word;
-  `;
-  annotation.textContent = text;
-
-  // Position relative to image container
-  const container = imageElement.parentElement;
-  container.style.position = "relative";
-  container.appendChild(annotation);
-
-  // Save annotation data
-  saveAnnotation({
-    type: "text",
-    x: x,
-    y: y,
-    text: text,
-    color: color,
-    size: size,
-    screenshotId: selectedScreenshot.id,
-  });
-
-  showStatus("Text annotation added", "success");
-}
-
-function addHighlightAnnotation(x, y, imageElement) {
-  const color = document.getElementById("annotationColorPicker").value;
-
-  // Create highlight overlay
-  const highlight = document.createElement("div");
-  highlight.style.cssText = `
-    position: absolute;
-    left: ${x * 100 - 2}%;
-    top: ${y * 100 - 2}%;
-    width: 4%;
-    height: 4%;
-    background: ${color};
-    opacity: 0.6;
-    border-radius: 50%;
-    z-index: 9;
-    pointer-events: none;
-  `;
-
-  // Position relative to image container
-  const container = imageElement.parentElement;
-  container.style.position = "relative";
-  container.appendChild(highlight);
-
-  // Save annotation data
-  saveAnnotation({
-    type: "highlight",
-    x: x,
-    y: y,
-    color: color,
-    screenshotId: selectedScreenshot.id,
-  });
-
-  showStatus("Highlight annotation added", "success");
-}
-
-async function saveAnnotation(annotationData) {
-  try {
-    const { annotations = [] } = await chrome.storage.local.get("annotations");
-    annotations.push({
-      ...annotationData,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
+    // Send message to background script to open popup window
+    await chrome.runtime.sendMessage({
+      action: "openAnnotationPopup",
+      screenshotId: screenshotId,
     });
-    await chrome.storage.local.set({ annotations });
+
+    showStatus("Opening annotation window...", "success");
   } catch (error) {
-    console.error("Error saving annotation:", error);
-  }
-}
-
-function clearAllAnnotations() {
-  if (!selectedScreenshot) return;
-
-  if (confirm("Clear all annotations for this screenshot?")) {
-    // Remove annotation elements from DOM
-    const container = document.querySelector(
-      `img[data-id="${selectedScreenshot.id}"]`
-    )?.parentElement;
-    if (container) {
-      container
-        .querySelectorAll('div[style*="position: absolute"]')
-        .forEach((el) => el.remove());
-    }
-
-    // Remove from storage
-    removeAnnotationsFromStorage(selectedScreenshot.id);
-
-    showStatus("All annotations cleared", "success");
-  }
-}
-
-async function removeAnnotationsFromStorage(screenshotId) {
-  try {
-    const { annotations = [] } = await chrome.storage.local.get("annotations");
-    const filtered = annotations.filter(
-      (annotation) => annotation.screenshotId !== screenshotId
-    );
-    await chrome.storage.local.set({ annotations: filtered });
-  } catch (error) {
-    console.error("Error removing annotations:", error);
+    console.error("Error opening annotation popup:", error);
+    showStatus("Error opening annotation window", "error");
   }
 }
 
@@ -682,21 +481,93 @@ function resetPanelForNewTab(newTab) {
   // Clear annotation mode
   annotationMode = null;
   selectedScreenshot = null;
-  document.getElementById("annotationTools").classList.add("hidden");
 
-  // Reset annotation button states
-  document.querySelectorAll("#annotationTools button").forEach((btn) => {
-    btn.classList.remove("ring-2", "ring-white");
-  });
+  // Note: Annotation popups are separate windows and will close automatically when tab changes
 
   // Clear text input
   document.getElementById("textInput").value = "";
 
-  // Reload screenshots and texts with domain filtering if enabled
+  // Reload screenshots and texts with current filter
   loadScreenshots();
   loadSavedTexts();
 
   showStatus("Panel reset for new tab/page", "success");
+}
+
+// Apply screenshot filter
+function applyScreenshotFilter() {
+  if (currentFilter === "all") {
+    screenshots = [...allScreenshots];
+  } else if (currentFilter === "domain" && currentTab) {
+    const currentDomain = new URL(currentTab.url).hostname;
+    screenshots = allScreenshots.filter((screenshot) => {
+      try {
+        const screenshotDomain = new URL(screenshot.url).hostname;
+        return screenshotDomain === currentDomain;
+      } catch (error) {
+        return true; // Include if URL parsing fails
+      }
+    });
+  } else {
+    screenshots = [...allScreenshots];
+  }
+}
+
+// Apply saved texts filter
+function applySavedTextsFilter() {
+  if (currentFilter === "all") {
+    savedTexts = [...allSavedTexts];
+  } else if (currentFilter === "domain" && currentTab) {
+    const currentDomain = new URL(currentTab.url).hostname;
+    savedTexts = allSavedTexts.filter((text) => {
+      try {
+        const textDomain = new URL(text.url).hostname;
+        return textDomain === currentDomain;
+      } catch (error) {
+        return true;
+      }
+    });
+  } else {
+    savedTexts = [...allSavedTexts];
+  }
+}
+
+// Handle filter change
+function handleFilterChange(newFilter) {
+  currentFilter = newFilter;
+
+  // Update dropdown UI
+  const dropdown = document.getElementById("filterDropdown");
+  const filterText = document.getElementById("filterText");
+
+  if (newFilter === "all") {
+    filterText.textContent = "All Screenshots";
+  } else if (newFilter === "domain") {
+    filterText.textContent = "Current Domain";
+  }
+
+  // Apply filters and re-render
+  applyScreenshotFilter();
+  applySavedTextsFilter();
+  renderScreenshots();
+  renderSavedTexts();
+
+  // Store filter preference
+  chrome.storage.local.set({ currentFilter: newFilter });
+}
+
+// Load filter preference
+async function loadFilterPreference() {
+  const data = await chrome.storage.local.get(["currentFilter"]);
+  currentFilter = data.currentFilter || "all";
+
+  // Update UI
+  const filterText = document.getElementById("filterText");
+  if (currentFilter === "all") {
+    filterText.textContent = "All Screenshots";
+  } else if (currentFilter === "domain") {
+    filterText.textContent = "Current Domain";
+  }
 }
 
 // Text note management functions

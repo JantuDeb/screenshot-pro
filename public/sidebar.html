@@ -48,38 +48,32 @@
     <div id="statusMessage" class="mt-2"></div>
   </div>
   
-  <!-- Annotation Tools (hidden by default) -->
-  <div id="annotationTools" class="bg-card rounded-lg p-4 mb-5 shadow-sm border border-border hidden">
-    <h3 class="text-sm font-medium text-foreground mb-3">Annotation Tools</h3>
-    <div class="flex gap-2 mb-3">
-      <button id="annotateText" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors">
-        Add Text
-      </button>
-      <button id="annotateDraw" class="bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700 transition-colors">
-        Draw
-      </button>
-      <button id="annotateHighlight" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition-colors">
-        Highlight
-      </button>
-      <button id="clearAnnotations" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors">
-        Clear
-      </button>
-    </div>
-    <div class="flex gap-2 items-center">
-      <label class="text-xs text-muted-foreground">Color:</label>
-      <input type="color" id="annotationColorPicker" value="#ef4444" class="w-6 h-6 rounded border border-input">
-      <label class="text-xs text-muted-foreground ml-2">Size:</label>
-      <select id="annotationSizePicker" class="text-xs border border-input rounded px-1 py-0.5 bg-background">
-        <option value="12">12px</option>
-        <option value="16" selected>16px</option>
-        <option value="20">20px</option>
-        <option value="24">24px</option>
-      </select>
-    </div>
-  </div>
+  <!-- Old annotation tools removed - now using modal interface -->
 
   <div class="bg-card rounded-lg p-4 shadow-sm border border-border">
-    <h3 class="text-sm font-medium text-foreground mb-4">Recent Screenshots</h3>
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-sm font-medium text-foreground">Recent Screenshots</h3>
+      
+      <!-- Filter Dropdown -->
+      <div class="relative">
+        <button id="filterDropdown" class="bg-secondary text-secondary-foreground px-3 py-1 rounded text-xs hover:bg-secondary/80 transition-colors flex items-center gap-1">
+          <span id="filterText">All Screenshots</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
+        </button>
+        
+        <div class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-card border border-border rounded-md shadow-lg z-50">
+          <a href="#" id="filterAll" class="block px-4 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors">
+            📷 All Screenshots
+          </a>
+          <a href="#" id="filterDomain" class="block px-4 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors">
+            🌐 Current Domain Only
+          </a>
+        </div>
+      </div>
+    </div>
+    
     <div id="screenshotsList"></div>
   </div>
   
